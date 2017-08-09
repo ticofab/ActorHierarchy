@@ -27,6 +27,7 @@ class Supervisor extends Actor {
 
   override def receive = {
     case census: Census => getCityActor(census.city) forward census
-    case citizen: Citizen => getCityActor(citizen.city) forward citizen
+    case addCitizen: AddCitizen => getCityActor(addCitizen.city) forward addCitizen
+    case removeCitizen: RemoveCitizen => getCityActor(removeCitizen.city) forward removeCitizen
   }
 }

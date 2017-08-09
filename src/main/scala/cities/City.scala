@@ -20,12 +20,16 @@ import akka.actor.Actor
 
 class City extends Actor {
 
-  override def receive = behaviour(Nil)
+  override def receive = behaviour(Set())
 
-  def behaviour(citizens: List[String]): Receive = {
+  def behaviour(citizens: Set[String]): Receive = {
 
-    case Citizen(_, name) =>
-      val newPopulation = name :: citizens
+    case AddCitizen(_, name) =>
+      val newPopulation = citizens + name
+      context become behaviour(newPopulation)
+
+    case RemoveCitizen(_, name) =>
+      val newPopulation = citizens - name
       context become behaviour(newPopulation)
 
     case Census(_) =>

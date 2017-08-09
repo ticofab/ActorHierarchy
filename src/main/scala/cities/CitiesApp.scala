@@ -18,19 +18,17 @@ package cities
 
 import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives.{complete, get, path, _}
 import akka.http.scaladsl.server.PathMatchers.Segment
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
-import spray.json.DefaultJsonProtocol
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
-object CitiesApp extends App with SprayJsonSupport with DefaultJsonProtocol {
+object CitiesApp extends App {
 
   implicit val system = ActorSystem("cities")
   implicit val materializer = ActorMaterializer()
@@ -40,14 +38,20 @@ object CitiesApp extends App with SprayJsonSupport with DefaultJsonProtocol {
     path(Segment) { city =>
       post {
         entity(as[String]) { citizenName =>
-          supervisor ! Citizen(city, citizenName)
+          supervisor ! AddCitizen(city, citizenName)
           complete(StatusCodes.OK)
         }
       } ~ get {
-        val futureList = (supervisor ? Census(city)) (3.seconds).mapTo[List[String]]
-        onComplete(futureList) {
-          case Success(list) => complete(list)
+        val futureSet = (supervisor ? Census(city)) (3.seconds).mapTo[Set[String]]
+        onComplete(futureSet) {
+          case Success(list) => complete(list.mkString(","))
           case Failure(error) => complete(error)
+        }
+      } ~ delete {
+        entity(as[String]) { citizenName =>
+          // TODO: bad! body in delete
+          supervisor ! RemoveCitizen(city, citizenName)
+          complete(StatusCodes.OK)
         }
       }
     }

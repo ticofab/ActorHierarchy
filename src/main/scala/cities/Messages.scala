@@ -16,6 +16,8 @@
 
 package cities
 
-case class Citizen(city: String, name: String)
+case class AddCitizen(city: String, name: String)
+
+case class RemoveCitizen(city: String, name: String)
 
 case class Census(city: String)
